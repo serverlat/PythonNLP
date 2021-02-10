@@ -1,4 +1,5 @@
 import nltk
+nltk.download("all")
 from nltk.corpus import state_union
 
 # Exercise 2
