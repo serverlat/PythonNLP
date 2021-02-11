@@ -38,7 +38,7 @@ patterns = [
      (r'.*', 'NN')                      # nouns (default)
 ]
 
-regex_tagger = RegexpTagger(patterns)
+regex_tagger = RegexpTagger(patterns, backoff=default_tagger)
 
 for split in splits:
     size_brown = int(len(correct_brown)*(split[0]/100))
@@ -55,14 +55,15 @@ for split in splits:
 
     print(f"The BigramTagger accuracy for the Brown Corpus is {bigram_tagger_brown.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
     print(f"The UnigramTagger accuracy for the Brown Corpus is {unigram_tagger_brown.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
-
+    print(f"The RegexpTagger accuracy for the Brown Corpus is {regex_tagger.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")     
+    
     #chat
     unigram_tagger_chat = UnigramTagger(train_chat, backoff=regex_tagger)
     bigram_tagger_chat = BigramTagger(train_chat, backoff=unigram_tagger_chat)
 
     print(f"The BigramTagger accuracy for the NPS Chat Corpus is {bigram_tagger_chat.evaluate(test_chat)} using a {split[0]}/{split[1]} split.")
     print(f"The UnigramTagger accuracy for the NPS Chat Corpus is {unigram_tagger_chat.evaluate(test_chat)} using a {split[0]}/{split[1]} split.")
-    
+    print(f"The RegexpTagger accuracy for the NPS Chat Corpus is {regex_tagger.evaluate(test_chat)} using a {split[0]}/{split[1]} split.")
 
 
 
