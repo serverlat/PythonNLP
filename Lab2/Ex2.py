@@ -21,11 +21,11 @@ for split in splits: #lag til funksjon for bruk i b
     default_tagger.tag(train_brown)
     print(f"The DefaultTagger accuracy for the Brown Corpus is {default_tagger.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
     default_tagger.tag(train_chat)
-    print(f"The DefaultTagger accuracy for the NPS Chat Corpus is {default_tagger.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
+    print(f"The DefaultTagger accuracy for the NPS Chat Corpus is {default_tagger.evaluate(test_chat)} using a {split[0]}/{split[1]} split.")
 
     #50/50 is better because the tagger doesn't "learn", so when the test data is increased (from 10%) 
     #there's a bigger chance that some words are going to be NN? 
-
+ 
 #b
 patterns = [
      (r'.*ing$', 'VBG'),                # gerunds
@@ -37,6 +37,33 @@ patterns = [
      (r'^-?[0-9]+(\.[0-9]+)?$', 'CD'),  # cardinal numbers
      (r'.*', 'NN')                      # nouns (default)
 ]
+
 regex_tagger = RegexpTagger(patterns)
-unigram_tagger = UnigramTagger()
-bigram_tagger = BigramTagger()
+
+for split in splits:
+    size_brown = int(len(correct_brown)*(split[0]/100))
+    train_brown = correct_brown[:size_brown] #up to 90%
+    test_brown = correct_brown[size_brown:] #from 90% to 100%
+
+    size_chat = int(len(correct_chat)*(split[0]/100))
+    train_chat = correct_chat[:size_chat]
+    test_chat = correct_chat[size_chat:]
+    
+    # brown
+    unigram_tagger_brown = UnigramTagger(train_brown, backoff=regex_tagger)
+    bigram_tagger_brown = BigramTagger(train_brown, backoff=unigram_tagger_brown)
+
+    print(f"The BigramTagger accuracy for the Brown Corpus is {bigram_tagger_brown.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
+    print(f"The UnigramTagger accuracy for the Brown Corpus is {unigram_tagger_brown.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
+
+    #chat
+    unigram_tagger_chat = UnigramTagger(train_chat, backoff=regex_tagger)
+    bigram_tagger_chat = BigramTagger(train_chat, backoff=unigram_tagger_chat)
+
+    print(f"The BigramTagger accuracy for the NPS Chat Corpus is {bigram_tagger_chat.evaluate(test_chat)} using a {split[0]}/{split[1]} split.")
+    print(f"The UnigramTagger accuracy for the NPS Chat Corpus is {unigram_tagger_chat.evaluate(test_chat)} using a {split[0]}/{split[1]} split.")
+    
+
+
+
+
