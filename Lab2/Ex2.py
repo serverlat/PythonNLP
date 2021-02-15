@@ -1,7 +1,9 @@
 import nltk 
+import sklearn
 from nltk.corpus import brown
 from nltk.corpus import nps_chat as chat
 from nltk.tag import DefaultTagger, RegexpTagger, UnigramTagger, BigramTagger
+from sklearn.model_selection import train_test_split
 
 #a
 splits = [[90,10], [50,50]]
@@ -17,6 +19,9 @@ for split in splits: #lag til funksjon for bruk i b
     size_chat = int(len(correct_chat)*(split[0]/100))
     train_chat = correct_chat[:size_chat]
     test_chat = correct_chat[size_chat:]
+    
+    #test_brown, train_brown = train_test_split(correct_brown, test_size = split[1]/100)
+    #test_chat, train_chat = train_test_split(correct_chat, test_size = split[1]/100)
 
     default_tagger.tag(train_brown)
     print(f"The DefaultTagger accuracy for the Brown Corpus is {default_tagger.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
@@ -40,7 +45,7 @@ patterns = [
 
 regex_tagger = RegexpTagger(patterns, backoff=default_tagger)
 
-for split in splits:
+""" for split in splits:
     size_brown = int(len(correct_brown)*(split[0]/100))
     train_brown = correct_brown[:size_brown] #up to 90%
     test_brown = correct_brown[size_brown:] #from 90% to 100%
@@ -72,3 +77,4 @@ for split in splits:
 
 
 
+ """
