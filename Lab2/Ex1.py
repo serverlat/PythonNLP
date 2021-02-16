@@ -8,19 +8,19 @@ tagged_brown_fdist = nltk.FreqDist(tag for (token,tag) in tagged_brown)
 most_common = tagged_brown_fdist.most_common(1)
 print(f"The most common tag is {most_common[0][0]}, it appears {most_common[0][1]} times.")
 
-#b Ambigious words
+#b Ambiguous words
 
 cfdist = nltk.ConditionalFreqDist(tagged_brown)
 ambi_words = set([word.lower() for word in cfdist.conditions() if len(cfdist[word]) >= 2]) 
 ambiwords_count = len(ambi_words)
 print(ambiwords_count, "words are ambigious.")
 
-#c Percentage of ambigious words
+#c Percentage of ambiguous words
 
 wordcount = len(set([word.lower() for word in brown.words()]))
 print(f"There are {wordcount} total words in the Brown corpus, {round(ambiwords_count/wordcount*100, 2)} % of these are ambigious.")
 
-#d Sentences with most ambigious words
+#d Sentences with most ambiguous words
 
 tag_counts = [(word, (len(set(cfdist[word].keys()).union(set(cfdist[word.upper()].keys()))))) for word in ambi_words]
 sorted_tag_counts = sorted(tag_counts, key=lambda word: word[1], reverse=True)
