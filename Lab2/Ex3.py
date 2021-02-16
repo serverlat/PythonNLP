@@ -1,7 +1,9 @@
 import nltk 
+import sklearn
 from nltk.tag import UnigramTagger, BigramTagger, RegexpTagger
 from nltk.corpus import brown
 from nltk.corpus import nps_chat as chat
+from sklearn.model_selection import train_test_split
 
 #a
 
@@ -24,8 +26,8 @@ default_tagger_chat = UnigramTagger(model=most_likely_tags_chat)
 
 
 splits = [[90,10], [50,50]]
-correct_brown = brown.tagged_sents()[:int(len(brown.tagged_sents()))]
-correct_chat = chat.tagged_posts()[:int(len(chat.tagged_posts()))]
+correct_brown = brown.tagged_sents()[:int((len(brown.tagged_sents())-1)*0.5)]
+correct_chat = chat.tagged_posts()[:int((len(chat.tagged_posts())-1)*0.5)]
 
 patterns = [
      (r'.*ing$', 'VBG'),                # gerunds
@@ -40,13 +42,8 @@ patterns = [
 
 
 for split in splits:
-    size_brown = int(len(correct_brown)*(split[0]/100))
-    train_brown = correct_brown[:size_brown] #up to 90%
-    test_brown = correct_brown[size_brown:] #from 90% to 100%
-
-    size_chat = int(len(correct_chat)*(split[0]/100))
-    train_chat = correct_chat[:size_chat]
-    test_chat = correct_chat[size_chat:]
+    test_brown, train_brown = train_test_split(correct_brown, test_size = split[1]/100, shuffle=False)
+    test_chat, train_chat = train_test_split(correct_chat, test_size = split[1]/100, shuffle=False)
     
     # brown
     regex_tagger_brown = RegexpTagger(patterns, backoff=default_tagger_brown)

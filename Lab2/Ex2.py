@@ -12,16 +12,8 @@ correct_chat = chat.tagged_posts()
 default_tagger = DefaultTagger("NN")
 
 for split in splits: #lag til funksjon for bruk i b
-    size_brown = int(len(correct_brown)*(split[0]/100))
-    train_brown = correct_brown[:size_brown] #up to 90%
-    test_brown = correct_brown[size_brown:] #from 90% to 100%
-
-    size_chat = int(len(correct_chat)*(split[0]/100))
-    train_chat = correct_chat[:size_chat]
-    test_chat = correct_chat[size_chat:]
-    
-    #test_brown, train_brown = train_test_split(correct_brown, test_size = split[1]/100)
-    #test_chat, train_chat = train_test_split(correct_chat, test_size = split[1]/100)
+    test_brown, train_brown = train_test_split(correct_brown, test_size = split[1]/100, shuffle=False)
+    test_chat, train_chat = train_test_split(correct_chat, test_size = split[1]/100, shuffle=False)
 
     default_tagger.tag(train_brown)
     print(f"The DefaultTagger accuracy for the Brown Corpus is {default_tagger.evaluate(test_brown)} using a {split[0]}/{split[1]} split.")
@@ -45,14 +37,9 @@ patterns = [
 
 regex_tagger = RegexpTagger(patterns, backoff=default_tagger)
 
-""" for split in splits:
-    size_brown = int(len(correct_brown)*(split[0]/100))
-    train_brown = correct_brown[:size_brown] #up to 90%
-    test_brown = correct_brown[size_brown:] #from 90% to 100%
-
-    size_chat = int(len(correct_chat)*(split[0]/100))
-    train_chat = correct_chat[:size_chat]
-    test_chat = correct_chat[size_chat:]
+for split in splits:
+    test_brown, train_brown = train_test_split(correct_brown, test_size = split[1]/100, shuffle=False)
+    test_chat, train_chat = train_test_split(correct_chat, test_size = split[1]/100, shuffle=False)
     
     # brown 
 
@@ -77,4 +64,3 @@ regex_tagger = RegexpTagger(patterns, backoff=default_tagger)
 
 
 
- """
