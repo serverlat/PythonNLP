@@ -10,24 +10,15 @@ from sklearn.model_selection import train_test_split
 # LookupTagger setup from NLTK Chapter 5
 # For Brown Corpus
 
-fdist_brown = nltk.FreqDist(brown.words()) # change this to fit the size? but idk how 
+fdist_brown = nltk.FreqDist(brown.words()[:int((len(brown.words())-1))])  # slicing to vary the size of the dataset
 cfdist_brown = nltk.ConditionalFreqDist(brown.tagged_words())
 top_words_brown = fdist_brown.most_common(200)
 most_likely_tags_brown = dict((word, cfdist_brown[word].max()) for (word, _) in top_words_brown) 
 default_tagger_brown = UnigramTagger(model=most_likely_tags_brown)
 
-# For NPS chat 
-
-fdist_chat = nltk.FreqDist(chat.words())
-cfdist_chat = nltk.ConditionalFreqDist(chat.tagged_words())
-top_words_chat = fdist_chat.most_common(200)
-most_likely_tags_chat = dict((word, cfdist_chat[word].max()) for (word, _) in top_words_chat)
-default_tagger_chat = UnigramTagger(model=most_likely_tags_chat) 
-
-
 splits = [[90,10], [50,50]]
-correct_brown = brown.tagged_sents()[:int((len(brown.tagged_sents())-1)*0.5)]
-correct_chat = chat.tagged_posts()[:int((len(chat.tagged_posts())-1)*0.5)]
+correct_brown = brown.tagged_sents()[:int((len(brown.tagged_sents())-1))] # slicing to vary the size of the dataset
+correct_chat = chat.tagged_posts()[:int((len(chat.tagged_posts())-1))]
 
 patterns = [
      (r'.*ing$', 'VBG'),                # gerunds
@@ -57,7 +48,7 @@ for split in splits:
     print(f"The LookupTagger accuracy for the Brown Corpus is {round(default_tagger_brown.evaluate(test_brown),3)}\n")   
     
     #chat
-    regex_tagger_chat = RegexpTagger(patterns, backoff=default_tagger_chat)
+    regex_tagger_chat = RegexpTagger(patterns, backoff=default_tagger_brown)
     unigram_tagger_chat = UnigramTagger(train_chat, backoff=regex_tagger_chat)
     bigram_tagger_chat = BigramTagger(train_chat, backoff=unigram_tagger_chat)
 
@@ -65,7 +56,7 @@ for split in splits:
     print(f"The BigramTagger accuracy for the NPS Chat Corpus is {round(bigram_tagger_chat.evaluate(test_chat),3)}")
     print(f"The UnigramTagger accuracy for the NPS Chat Corpus is {round(unigram_tagger_chat.evaluate(test_chat),3)}")
     print(f"The RegexpTagger accuracy for the NPS Chat Corpus is {round(regex_tagger_chat.evaluate(test_chat),3)}")
-    print(f"The LookupTagger accuracy for the NPS Chat Corpus is {round(default_tagger_chat.evaluate(test_chat),3)}\n")
+    print(f"The LookupTagger accuracy for the NPS Chat Corpus is {round(default_tagger_brown.evaluate(test_chat),3)}\n")
 
 #b 
 
