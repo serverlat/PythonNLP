@@ -3,6 +3,10 @@ import nltk.data
 from nltk.corpus.reader import CategorizedPlaintextCorpusReader, PlaintextCorpusReader
 from nltk.tokenize.casual import TweetTokenizer
 import re
+from nltk.corpus import stopwords 
+import sklearn 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
 
 # Exercise 5
 
@@ -30,19 +34,13 @@ reader = CategorizedPlaintextCorpusReader("C:/Users/olgur/nltk_data/twitter_corp
                                           r'tweets_.*\.txt', cat_pattern=r'tweets_(\w+)\.txt')
 
 # setting up stopwords
-stopword_reader = PlaintextCorpusReader("C:/Users/olgur/nltk_data/twitter_corpus/twitterstopwords/",
-                                        r'.*\.txt', encoding='latin-1')
-stop_words = set(['“', '”', '’', ",", "#", "—", "__", "_", "___"])
+stop_words = set(['“', '”', '’', ",", "#", "—", "__", "_", "___", ".", ":", '"', "?", "!", "-", ")", "(", "...", "$"]).union(set(stopwords.words("english")))
 
-for file in stopword_reader.fileids():
-    stops = stopword_reader.raw(file).replace("\n", ",").split(",")
-    for word in stops:
-        stop_words.add(word)
 
 
 # text wrangling functions:
 
-'''def remove_emoji(string):  # github https://gist.github.com/slowkow/7a7f61f495e3dbb7e3d767f97bd7304b
+def remove_emoji(string):  # github https://gist.github.com/slowkow/7a7f61f495e3dbb7e3d767f97bd7304b
     emoji_pattern = re.compile("["
                                u"\U0001F600-\U0001F64F"  # emoticons
                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -63,11 +61,11 @@ for file in stopword_reader.fileids():
                                u"\ufe0f"  # dingbats
                                u"\u3030"
                                "]+", flags=re.UNICODE)
-    return emoji_pattern.sub(r'', string)'''
+    return emoji_pattern.sub(r'', string)
 
 
 def remove_links(text):
-    http_regex = re.compile(r"https://.*")
+    http_regex = re.compile(r"(https|http)://.*")
     return http_regex.sub(r"", text)
 
 
@@ -76,7 +74,7 @@ def remove_users(text):
     return user_regex.sub(r"", text)
 
 
-def remove_numebrs(text):
+def remove_numbers(text):
     number_regex = re.compile(r"[0-9]+")
     return number_regex.sub(r"", text)
 
@@ -85,18 +83,32 @@ def remove_hashtags(text):
     return re.sub(r"#", r"", text)
 
 
-# a
 def tokenize_tweets(file):
-    tweet_tokenizer = TweetTokenizer()
-    text = reader.raw(file)
-    link_free = remove_links(text)
-    #emoji_free = remove_emoji(link_free)
-    user_free = remove_users(link_free)
-    number_free = remove_numebrs(user_free)
-    hashtag_free = remove_hashtags(number_free)
-    twitter_words = [term.lower() for term in tweet_tokenizer.tokenize(hashtag_free)
-                     if term.lower() not in stop_words]
-    twitter_words_with_hashtags = [term.lower() for term in tweet_tokenizer.tokenize(number_free) if
-                                   term.lower() not in stop_words]
-    return twitter_words, twitter_words_with_hashtags
+    #tweet_tokenizer = TweetTokenizer(strip_handles=True)
+    tweets = reader.raw(file).lower().split("\n")
+    normalized_tweets = []
+    for tweet in tweets:
+        link_free = remove_links(tweet)
+        emoji_free = remove_emoji(link_free)
+        user_free = remove_users(emoji_free)
+        number_free = remove_numbers(user_free)
+        hashtag_free = remove_hashtags(number_free)
+        tokenized_tweet = [term for term in hashtag_free.split(" ")
+                                        if term not in stop_words]
+        if tokenized_tweet:
+            normalized_tweets.append((" ".join(tokenized_tweet), file))
+    return normalized_tweets
+
+tweets_with_labels = tokenize_tweets(reader.fileids(categories="BarackObama")) + tokenize_tweets(reader.fileids(categories="NASA"))
+
+tweets = [tweet[0] for tweet in tweets_with_labels]
+labels = [tweet[1] for tweet in tweets_with_labels]
+
+nasa_train, nasa_test, obama_train, obama_test = train_test_split(tweets, labels, test_size=0.1, random_state=12)
+
+def vectorize_tweets(tweets):
+    vectorizer = TfidfVectorizer()
+    return vectorizer.fit_transform(tweets)
+
+
 
