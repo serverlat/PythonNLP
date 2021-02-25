@@ -85,7 +85,7 @@ def remove_hashtags(text):
     return re.sub(r"#", r"", text)
 
 
-def normalize_tweets(file, category):
+def normalize_tweets(file, label):
     tweets = reader.raw(file).lower().split("\n")
     normalized_tweets = []
     for tweet in tweets:
@@ -97,17 +97,15 @@ def normalize_tweets(file, category):
         tweet = [term for term in tweet.split(" ")
                                         if term not in stop_words]
         if tweet:
-            normalized_tweets.append((" ".join(tweet), category))
+            normalized_tweets.append((" ".join(tweet), label))
     return normalized_tweets
 
-tweets_with_labels = normalize_tweets(reader.fileids(categories="BarackObama"), "BarackObama") + normalize_tweets(reader.fileids(categories="NASA"), "NASA")
+tweets_with_labels = normalize_tweets(reader.fileids(categories="BarackObama"), 0) + normalize_tweets(reader.fileids(categories="NASA"), 1)
 
 tweets = [tweet[0] for tweet in tweets_with_labels]
 labels = [tweet[1] for tweet in tweets_with_labels]
 
 tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.1, random_state=12) 
-
-
 
 vectorizer = TfidfVectorizer()
 tweets_train = vectorizer.fit_transform(tweets_train).todense()
