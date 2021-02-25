@@ -8,7 +8,6 @@ from sklearn.model_selection import train_test_split
 male_names = [(name, "m") for name in names.words("male.txt")]
 female_names = [(name, "f") for name in names.words("female.txt")]
 all_names = male_names + female_names
-random.shuffle(all_names)
 
 def gender_feature(name):
     return {"last_letter": name[-1]}

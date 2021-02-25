@@ -7,6 +7,8 @@ from nltk.corpus import stopwords
 import sklearn 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import confusion_matrix
 
 # Exercise 5
 
@@ -83,33 +85,41 @@ def remove_hashtags(text):
     return re.sub(r"#", r"", text)
 
 
-def tokenize_tweets(file):
-    #tweet_tokenizer = TweetTokenizer(strip_handles=True)
+def normalize_tweets(file, category):
     tweets = reader.raw(file).lower().split("\n")
     normalized_tweets = []
     for tweet in tweets:
-        link_free = remove_links(tweet)
-        emoji_free = remove_emoji(link_free)
-        user_free = remove_users(emoji_free)
-        number_free = remove_numbers(user_free)
-        hashtag_free = remove_hashtags(number_free)
-        tokenized_tweet = [term for term in hashtag_free.split(" ")
+        tweet = remove_links(tweet)
+        tweet = remove_emoji(tweet)
+        tweet = remove_users(tweet)
+        tweet = remove_numbers(tweet)
+        tweet = remove_hashtags(tweet)
+        tweet = [term for term in tweet.split(" ")
                                         if term not in stop_words]
-        if tokenized_tweet:
-            normalized_tweets.append((" ".join(tokenized_tweet), file))
+        if tweet:
+            normalized_tweets.append((" ".join(tweet), category))
     return normalized_tweets
 
-tweets_with_labels = tokenize_tweets(reader.fileids(categories="BarackObama")) + tokenize_tweets(reader.fileids(categories="NASA"))
+tweets_with_labels = normalize_tweets(reader.fileids(categories="BarackObama"), "BarackObama") + normalize_tweets(reader.fileids(categories="NASA"), "NASA")
 
 tweets = [tweet[0] for tweet in tweets_with_labels]
 labels = [tweet[1] for tweet in tweets_with_labels]
 
-tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.1, random_state=12)
+tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.1, random_state=12) 
 
-def vectorize_tweets(tweets):
-    vectorizer = TfidfVectorizer()
-    return vectorizer.fit_transform(tweets)
-    
+
+
+vectorizer = TfidfVectorizer()
+tweets_train = vectorizer.fit_transform(tweets_train).todense()
+
+nb = GaussianNB()
+nb.fit(tweets_train, labels_train)
+tweets_test = vectorizer.transform(tweets_test).todense()
+label_prediction = nb.predict(tweets_test)
+
+print(confusion_matrix(labels_test, label_prediction))
+print(nb.score(tweets_test, labels_test))
+
 
 
 
