@@ -104,11 +104,12 @@ tweets_with_labels = tokenize_tweets(reader.fileids(categories="BarackObama")) +
 tweets = [tweet[0] for tweet in tweets_with_labels]
 labels = [tweet[1] for tweet in tweets_with_labels]
 
-nasa_train, nasa_test, obama_train, obama_test = train_test_split(tweets, labels, test_size=0.1, random_state=12)
+tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.1, random_state=12)
 
 def vectorize_tweets(tweets):
     vectorizer = TfidfVectorizer()
     return vectorizer.fit_transform(tweets)
+    
 
 
 
