@@ -24,7 +24,7 @@ api = API(auth, wait_on_rate_limit=True)  # setting limit to avoid upsetting Twi
 
 '''accounts = [("NASA", 11348282), ("BarackObama", 813286)]
 for account in accounts:
-    statuses = Cursor(api.user_timeline, user_id=account[1], include_rts=False, exclude_replies=True, count=3000, tweet_mode="extended").items()
+    statuses = Cursor(api.user_timeline, user_id=account[1], include_rts=False, exclude_replies=True, count=10000, tweet_mode="extended").items()
     for status in statuses:
         if status.lang == "en":
             file = open(f"C:/Users/olgur/nltk_data/twitter_corpus/tweets_{account[0]}.txt", "a",
@@ -90,7 +90,7 @@ def normalize_tweets(file, label):
     normalized_tweets = []
     for tweet in tweets:
         tweet = remove_links(tweet)
-        tweet = remove_emoji(tweet)
+        #tweet = remove_emoji(tweet)
         tweet = remove_users(tweet)
         tweet = remove_numbers(tweet)
         tweet = remove_hashtags(tweet)
@@ -98,26 +98,26 @@ def normalize_tweets(file, label):
                                         if term not in stop_words]
         if tweet:
             normalized_tweets.append((" ".join(tweet), label))
-    return normalized_tweets
+    return normalized_tweets[:1600] # Barack Obama has more tweets, so I'm making it even 
 
 tweets_with_labels = normalize_tweets(reader.fileids(categories="BarackObama"), 0) + normalize_tweets(reader.fileids(categories="NASA"), 1)
 
 tweets = [tweet[0] for tweet in tweets_with_labels]
 labels = [tweet[1] for tweet in tweets_with_labels]
 
-tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.1, random_state=12) 
+tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.4, random_state=12) 
 
 vectorizer = TfidfVectorizer()
-tweets_train = vectorizer.fit_transform(tweets_train).todense()
+tweets_train = vectorizer.fit_transform(tweets_train).todense() # todense() to satifsy input requirements
 
 nb = GaussianNB()
 nb.fit(tweets_train, labels_train)
-tweets_test = vectorizer.transform(tweets_test).todense()
+tweets_test = vectorizer.transform(tweets_test).todense() # todense() to satifsy input requirements
 label_prediction = nb.predict(tweets_test)
 
-print(confusion_matrix(labels_test, label_prediction))
-print(nb.score(tweets_test, labels_test))
+matrix = confusion_matrix(labels_test, label_prediction)
 
-
-
+print(f"The probability of a tweet coming from Barack Obama is {round(((matrix[0][0] + matrix[0][1])/len(labels_test))*100, 2)}% (actual probaility: {round((matrix[0][0]/len(labels_test))*100, 2)}%)")
+print(f"The probability of a tweet coming from NASA  is {round(((matrix[1][0] + matrix[1][1])/len(labels_test))*100, 2)}% (actual probability: {round((matrix[1][1]/len(labels_test))*100, 2)}%)")
+print(f"The model has {round(nb.score(tweets_test, labels_test)*100, 2)}% accuracy")
 
