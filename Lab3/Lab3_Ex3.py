@@ -4,6 +4,7 @@ from nltk.corpus import movie_reviews
 import random
 from nltk.corpus import wordnet as wn
 from nltk.corpus import stopwords 
+from nltk.stem import WordNetLemmatizer 
 
 documents = [(list(movie_reviews.words(fileid)), category)
              for category in movie_reviews.categories()
@@ -11,20 +12,22 @@ documents = [(list(movie_reviews.words(fileid)), category)
 all_words = FreqDist(w.lower() for w in movie_reviews.words())
 word_features = list(all_words)[:2000]
 stop_words = set(stopwords.words("english"))
+lemmatizer = WordNetLemmatizer() 
 
 def document_features(document):
     document_words = set(document)
+    #document_lemmas = set([lemmatizer.lemmatize(word) for word in document_words if lemmatizer.lemmatize(word) not in document_words])
     features = {} 
-    dummycount = 0
     for word in word_features:
         features['contains({})'.format(word)] = (word in document_words)
-        if len(word) > 2 and word.isalpha() and word not in stop_words:
+        if len(word) > 2:
             synsets = wn.synsets(word)
             if synsets:
                 for synset in synsets:
                     for lemma in synset.lemmas():
-                        if "_" not in lemma.name():
-                            features['contains({})'.format(lemma.name().lower())] = (word in document_words)
+                        lemma = lemma.name().lower()
+                        if "_" not in lemma:
+                            features['synonyms({})'.format(lemma)] = (lemma in document_words)
     return features
 
 
