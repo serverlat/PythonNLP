@@ -3,7 +3,6 @@ from nltk import FreqDist, NaiveBayesClassifier
 from nltk.corpus import movie_reviews
 import random
 from nltk.corpus import wordnet as wn
-from sklearn.model_selection import train_test_split
 from nltk.corpus import stopwords 
 
 documents = [(list(movie_reviews.words(fileid)), category)
