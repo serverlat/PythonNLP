@@ -70,31 +70,20 @@ class YoutubeClassifier:
         def clean_data(data):
             clean_data = []
             for text in data:
-                text = re.sub(r"(https|http)://.*", r"", text)
-                text = re.sub(r"@.*", r"", text)
-                text = re.sub (r"[0-9]+", r"", text)
-                text = re.sub(r"[^\w\s]", r"", text)
-                text = [unidecode.unidecode(word.lower()) for word in text.split() if word not in stop_words]
-                text = [lemmatizer.lemmatize(word) for word in text]
+                text = re.sub(r"(https|http)://.*", r"", text) # most links
+                text = re.sub(r"@.*", r"", text) # user mentions
+                text = re.sub (r"[0-9]+", r"", text) # numbers
+                text = re.sub(r"[^\w\s]", r"", text) # punctuations, also supposed to remove \n etc. but it doesn't work
+                text = re.sub(r"\s+", r" ", text) # duplcate space removal
+                text = [unidecode.unidecode(word.lower()) for word in text.split() if word not in stop_words] # accent characters
+                text = [lemmatizer.lemmatize(word) for word in text] # lemmatization
                 text = " ".join(text)
                 clean_data.append(text)
             return clean_data
 
-        titles = clean_data(titles)
         descriptions = clean_data(descriptions)
-        """
-        TODO
-        FILL IN CODE HERE
+        titles = clean_data(titles)
 
-        Task 1):
-        Remove noise
-        Task 2) 
-        Stop word removal
-        Task 3)
-        Normalize the text
-
-
-        Function needs to return two lists of strings.         """
         # it needs to be forced into the format of a string first :/
         return titles, descriptions
 
@@ -239,7 +228,7 @@ class YoutubeClassifier:
 
 if __name__ == "__main__":
     """ TODO READ HERE: template code for running and using the model """
-    data = pd.read_csv('bigFile/data/GB.csv')
+    data = pd.read_csv('C:/Users/olgur/Programming/PythonNLP/Lab3/bigFile/data/GB.csv', nrows=5000)
 
     # NB you can slice the lists to be smaller for faster training.
     titles = data['title'].tolist()[:-100]
