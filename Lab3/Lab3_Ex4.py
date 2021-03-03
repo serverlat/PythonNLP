@@ -69,10 +69,12 @@ class YoutubeClassifier:
 
         def clean_data(data):
             clean_data = []
+            counter = 0
             for text in data:
                 text = re.sub(r"(https|http)://.*", r"", text) # most links
                 text = re.sub(r"@.*", r"", text) # user mentions
                 text = re.sub (r"[0-9]+", r"", text) # numbers
+                text = text.replace("\\n", "")
                 text = re.sub(r"[^\w\s]", r"", text) # punctuations, also supposed to remove \n etc. but it doesn't work
                 text = re.sub(r"\s+", r" ", text) # duplcate space removal
                 text = [unidecode.unidecode(word.lower()) for word in text.split() if word not in stop_words] # accent characters
