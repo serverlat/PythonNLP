@@ -23,10 +23,9 @@ def document_features(document):
             synsets = wn.synsets(word)
             if synsets:
                 for synset in synsets:
-                    for lemma in synset.lemmas():
-                        lemma = lemma.name().lower()
+                    for lemma in synset.lemma_names():
                         if "_" not in lemma:
-                            features['synonyms({})'.format(lemma)] = (lemma in document_words)
+                            features['synset({})'.format(lemma)] = (lemma in document_words)
     return features
 
 

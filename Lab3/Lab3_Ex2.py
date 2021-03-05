@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 import sklearn 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB, MultinomialNB
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix
 
 
@@ -85,7 +85,7 @@ tweets_with_labels = normalize_tweets(reader.fileids(categories="BarackObama"), 
 tweets = [tweet[0] for tweet in tweets_with_labels]
 labels = [tweet[1] for tweet in tweets_with_labels]
 
-tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.4, random_state=12) 
+tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.1, random_state=12) 
 
 vectorizer = TfidfVectorizer()
 tweets_train = vectorizer.fit_transform(tweets_train) 
@@ -97,8 +97,6 @@ label_prediction = nb.predict(tweets_test)
 
 matrix = confusion_matrix(labels_test, label_prediction)
 
-print(f"The probability of a tweet coming from Barack Obama is {round(((matrix[0][0] + matrix[0][1])/len(labels_test))*100, 2)}% (actual probaility: {round((matrix[0][0]/len(labels_test))*100, 2)}%)")
-print(f"The probability of a tweet coming from NASA  is {round(((matrix[1][0] + matrix[1][1])/len(labels_test))*100, 2)}% (actual probability: {round((matrix[1][1]/len(labels_test))*100, 2)}%)")
 print(f"The model has an overall accuracy of {round(nb.score(tweets_test, labels_test)*100, 2)}% \n")
 
 print("\n-------------- BARACK OBAMA TEST TWEETS ------------\n")
