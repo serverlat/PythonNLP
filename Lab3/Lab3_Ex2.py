@@ -7,10 +7,11 @@ from nltk.corpus import stopwords
 import sklearn 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.metrics import confusion_matrix
 
-# Exercise 5
+
+# Exercise 3
 
 consumer_key = "RMJSIt2Qmj4qnwXf04eIkjvru"
 consumer_secret = "lUQh4rqpU4i1iU8n071niRBdrVLRBsh8hOtxuTUIVaQdEayHHW"
@@ -38,34 +39,6 @@ reader = CategorizedPlaintextCorpusReader("C:/Users/olgur/nltk_data/twitter_corp
 # setting up stopwords
 stop_words = set(['“', '”', '’', ",", "#", "—", "__", "_", "___", ".", ":", '"', "?", "!", "-", ")", "(", "...", "$"]).union(set(stopwords.words("english")))
 
-
-
-# text wrangling functions:
-
-def remove_emoji(string):  # github https://gist.github.com/slowkow/7a7f61f495e3dbb7e3d767f97bd7304b
-    emoji_pattern = re.compile("["
-                               u"\U0001F600-\U0001F64F"  # emoticons
-                               u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                               u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                               u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                               u"\U00002500-\U00002BEF"  # chinese char
-                               u"\U00002702-\U000027B0"
-                               u"\U00002702-\U000027B0"
-                               u"\U000024C2-\U0001F251"
-                               u"\U0001f926-\U0001f937"
-                               u"\U00010000-\U0010ffff"
-                               u"\u2640-\u2642"
-                               u"\u2600-\u2B55"
-                               u"\u200d"
-                               u"\u23cf"
-                               u"\u23e9"
-                               u"\u231a"
-                               u"\ufe0f"  # dingbats
-                               u"\u3030"
-                               "]+", flags=re.UNICODE)
-    return emoji_pattern.sub(r'', string)
-
-
 def remove_links(text):
     http_regex = re.compile(r"(https|http)://.*")
     return http_regex.sub(r"", text)
@@ -84,20 +57,27 @@ def remove_numbers(text):
 def remove_hashtags(text):
     return re.sub(r"#", r"", text)
 
+prob_test_tweets = [[],[]]
 
 def normalize_tweets(file, label):
     tweets = reader.raw(file).lower().split("\n")
     normalized_tweets = []
+    counter = 0
+    original = ""
     for tweet in tweets:
+        original = tweet
         tweet = remove_links(tweet)
-        #tweet = remove_emoji(tweet)
         tweet = remove_users(tweet)
         tweet = remove_numbers(tweet)
         tweet = remove_hashtags(tweet)
         tweet = [term for term in tweet.split(" ")
                                         if term not in stop_words]
         if tweet:
-            normalized_tweets.append((" ".join(tweet), label))
+            if counter < 5: 
+                prob_test_tweets[label].append((" ".join(tweet), original))
+                counter +=1
+            else: 
+                normalized_tweets.append((" ".join(tweet), label))
     return normalized_tweets[:1600] # Barack Obama has more tweets, so I'm making it even 
 
 tweets_with_labels = normalize_tweets(reader.fileids(categories="BarackObama"), 0) + normalize_tweets(reader.fileids(categories="NASA"), 1)
@@ -108,16 +88,26 @@ labels = [tweet[1] for tweet in tweets_with_labels]
 tweets_train, tweets_test, labels_train, labels_test = train_test_split(tweets, labels, test_size=0.4, random_state=12) 
 
 vectorizer = TfidfVectorizer()
-tweets_train = vectorizer.fit_transform(tweets_train).todense() # todense() to satifsy input requirements
+tweets_train = vectorizer.fit_transform(tweets_train) 
 
-nb = GaussianNB()
+nb = MultinomialNB()
 nb.fit(tweets_train, labels_train)
-tweets_test = vectorizer.transform(tweets_test).todense() # todense() to satifsy input requirements
+tweets_test = vectorizer.transform(tweets_test) 
 label_prediction = nb.predict(tweets_test)
 
 matrix = confusion_matrix(labels_test, label_prediction)
 
 print(f"The probability of a tweet coming from Barack Obama is {round(((matrix[0][0] + matrix[0][1])/len(labels_test))*100, 2)}% (actual probaility: {round((matrix[0][0]/len(labels_test))*100, 2)}%)")
 print(f"The probability of a tweet coming from NASA  is {round(((matrix[1][0] + matrix[1][1])/len(labels_test))*100, 2)}% (actual probability: {round((matrix[1][1]/len(labels_test))*100, 2)}%)")
-print(f"The model has {round(nb.score(tweets_test, labels_test)*100, 2)}% accuracy")
+print(f"The model has an overall accuracy of {round(nb.score(tweets_test, labels_test)*100, 2)}% \n")
+
+print("\n-------------- BARACK OBAMA TEST TWEETS ------------\n")
+for tweet in prob_test_tweets[0]:
+    vector = vectorizer.transform([tweet[0]])
+    print(f"The tweet '{tweet[1]}' has a likelyhood of {round(nb.predict_proba(vector)[0][0],2)} to be tweeted by Barack Obama and not NASA\n")
+
+print("\n--------------- NASA TEST TWEETS --------------------\n")
+for tweet in prob_test_tweets[1]:
+    vector = vectorizer.transform([tweet[0]])
+    print(f"The tweet '{tweet[1]}' has a likelyhood of {round(nb.predict_proba(vector)[0][1],2)} to be tweeted by NASA and not Barack Obama\n")
 

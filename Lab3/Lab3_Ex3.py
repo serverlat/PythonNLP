@@ -16,7 +16,6 @@ lemmatizer = WordNetLemmatizer()
 
 def document_features(document):
     document_words = set(document)
-    #document_lemmas = set([lemmatizer.lemmatize(word) for word in document_words if lemmatizer.lemmatize(word) not in document_words])
     features = {} 
     for word in word_features:
         features['contains({})'.format(word)] = (word in document_words)
