@@ -16,7 +16,6 @@ lemmatizer = WordNetLemmatizer()
 
 def document_features(document):
     document_words = set(document)
-    #document_lemmas = set([lemmatizer.lemmatize(word) for word in document_words if lemmatizer.lemmatize(word) not in document_words])
     features = {} 
     for word in word_features:
         features['contains({})'.format(word)] = (word in document_words)
@@ -24,10 +23,9 @@ def document_features(document):
             synsets = wn.synsets(word)
             if synsets:
                 for synset in synsets:
-                    for lemma in synset.lemmas():
-                        lemma = lemma.name().lower()
+                    for lemma in synset.lemma_names():
                         if "_" not in lemma:
-                            features['synonyms({})'.format(lemma)] = (lemma in document_words)
+                            features['synset({})'.format(lemma)] = (lemma in document_words)
     return features
 
 

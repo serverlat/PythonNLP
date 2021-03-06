@@ -44,20 +44,20 @@ def performance(classifier):
     print(f"Recall for female names: {round(recall_female,2)}")
     print(f"Recall for male names: {round(recall_male,2)}")
     print(f"F-score for female names: {round(fscore_female,2)}")
-    print(f"F-scor for male names: {round(fscore_male,2)}")
+    print(f"F-score for male names: {round(fscore_male,2)}")
     print("\n")
 
 # Decision Tree
 dec_tree = DecisionTreeClassifier.train(train_features)
 print(f"The accuracy of the Decision Tree classifier is {round(accuracy(dec_tree, test_features),2)}")
-#performance(dec_tree)
+performance(dec_tree)
 
  # Naive Bayes
 nb = NaiveBayesClassifier.train(train_features)
 print(f"The accuracy of the Naive Bayes classifier is {round(accuracy(nb, test_features),2)}")
-#performance(nb)
+performance(nb)
 
  # Maximum Entropy
 max_ent = MaxentClassifier.train(train_features, trace=0) # set trace to 0 to not print the log
 print(f"The accuracy of the Maximum Entropy classifier is {round(accuracy(max_ent, test_features),2)}")
-#performance(max_ent)
+performance(max_ent)
