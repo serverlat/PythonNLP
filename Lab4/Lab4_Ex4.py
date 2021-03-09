@@ -17,13 +17,28 @@ with open('C:/Users/olgur/Programming/PythonNLP/Lab4/realDonaldTrump.json', enco
         for words in tweet_words: tokenized_tweets.append(words)
 
 
-training_trump, padded_trump = padded_everygram_pipeline(3, tokenized_tweets)
+training_trump, padded_trump = padded_everygram_pipeline(4, tokenized_tweets)
 
 trump_model = MLE(3)
 trump_model.fit(training_trump, padded_trump)
-print(trump_model.generate(10))
 
+def predict_next(words): #trigram only
+    predicted_words = words
+    most_recent = ""
+    while most_recent not in ["!", ".", "?", "<s>"]:
+        maxscore = -1
+        candidate_word = ""
+        for word in list(trump_model.vocab):
+            score = trump_model.score(word, predicted_words.split()[-2:])
+            if score > maxscore:
+                maxscore = score
+                candidate_word = word
+        predicted_words += " " + candidate_word
+        most_recent = candidate_word
 
+    print(predicted_words)
+
+predict_next("america is")
 
 
 
