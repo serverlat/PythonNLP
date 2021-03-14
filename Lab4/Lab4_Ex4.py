@@ -17,46 +17,40 @@ with open('C:/Users/olgur/Programming/PythonNLP/Lab4/realDonaldTrump.json', enco
         for words in tweet_words: tokenized_tweets.append(words)
 
 
-training_trump, padded_trump = padded_everygram_pipeline(4, tokenized_tweets)
+training_trump, padded_trump = padded_everygram_pipeline(5, tokenized_tweets)
 
-trump_model = MLE(3)
+trump_model = MLE(5)
 trump_model.fit(training_trump, padded_trump)
 
-def predict_next(words): #trigram only
+# My very innovative solution (Google, hire me)
+
+def predict_next(words): 
     predicted_words = words
     most_recent = ""
-    while most_recent not in ["!", ".", "?", "<s>"]:
+    while most_recent not in ["!", ".", "?", "<s>", "</s>"]: 
         maxscore = -1
         candidate_word = ""
         for word in list(trump_model.vocab):
-            score = trump_model.score(word, predicted_words.split()[-2:])
-            if score > maxscore:
+            score = trump_model.score(word, predicted_words.split()[-4:]) # how likely is word x in context with the last three words? (trying to form a 4-gram)
+            if score > maxscore: # find the most likely word in the given context
                 maxscore = score
                 candidate_word = word
-        predicted_words += " " + candidate_word
-        most_recent = candidate_word
+        predicted_words += " " + candidate_word # when found, add to the existing context, and start over
+        most_recent = candidate_word # to check if we've made a full sentence
 
-    print(predicted_words)
+    return predicted_words
 
-predict_next("america is")
+print(predict_next("china is"))
+ 
+ # Less innovative, though perhaps more accurate (?) and cleaner solution
 
-
-
-
-
-
-
-def clean_data(data):
-    clean_data = []
-    for text in data:
-        text = re.sub(r"(https|http)://.*", r"", text) # most links
-        text = re.sub(r"@.*", r"", text) # user mentions
-        text = re.sub (r"[0-9]+", r"", text) # numbers
-        text = text.replace("\\n", "")
-        text = re.sub(r"[^\w\s]", r"", text) # punctuations, also supposed to remove \n etc. but it doesn't work
-        text = re.sub(r"\s+", r" ", text) # duplcate space removal
-        #text = [unidecode.unidecode(word.lower()) for word in text.split() if word not in stop_words] # accent characters
-        #text = [lemmatizer.lemmatize(word) for word in text] # lemmatization
-        text = " ".join(text)
-        clean_data.append(text)
-    return clean_data
+def predict_next_actual(words):
+    most_recent = words.split()[-1]
+    if most_recent in ["<s>", "</s>"]:
+        return " ".join(words.split()).replace(most_recent, "")
+    elif most_recent in ["!", ".", "?"]:
+        return " ".join(words.split())
+    else:
+        return predict_next_actual(words + " " + trump_model.generate(1, text_seed=words.split()))
+    
+print(predict_next_actual("china is"))
