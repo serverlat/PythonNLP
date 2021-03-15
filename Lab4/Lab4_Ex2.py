@@ -27,9 +27,9 @@ labels = ["NP", "NN", "NNP"]
 
 for i in range(5):
     tree = chunk(tagged[i])
+    print(tree)
     for subtree in tree.subtrees():
-        if subtree.label() in labels:
-            print("Chunk:", subtree)
+        if subtree.label() in labels and subtree.height() > 1:
             words = [leaf[0] for leaf in subtree.leaves()]
             print("Matching text:"," ".join(words), "\n")
 
