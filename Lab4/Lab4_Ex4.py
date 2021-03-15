@@ -9,7 +9,7 @@ from nltk.lm import MLE
 
 tokenized_tweets = []
 
-with open('C:/Users/olgur/Programming/PythonNLP/Lab4/realDonaldTrump.json', encoding="utf8") as f:
+with open('Lab4/realDonaldTrump.json', encoding="utf8") as f:
     tweets = json.load(f)
     for data in tweets:
         tweet_sents = sent_tokenize(data["text"].lower())

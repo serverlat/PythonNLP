@@ -25,9 +25,9 @@ for sent in tagged_brown:
             for leaf in subtree.leaves():
                 words.append(leaf[0])
             tuples.add(tuple(words))
-    if len(tuples) == 50:
+    if len(tuples) == 20:
         break
 
-print("50 results: ")
+print("20 results: ")
 for sentence in tuples:
     print(" ".join(sentence))
