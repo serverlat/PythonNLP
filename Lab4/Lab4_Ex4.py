@@ -47,9 +47,9 @@ print(predict_next("china is"))
 def predict_next_actual(words):
     most_recent = words.split()[-1]
     if most_recent in ["<s>", "</s>"]:
-        return " ".join(words.split()).replace(most_recent, "")
+        return words.replace(most_recent, "")
     elif most_recent in ["!", ".", "?"]:
-        return " ".join(words.split())
+        return words
     else:
         return predict_next_actual(words + " " + trump_model.generate(1, text_seed=words.split()))
     
