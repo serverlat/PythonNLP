@@ -19,9 +19,8 @@ with open("Lab5/fellowship.txt", "r", encoding="utf8") as rawBook:
 #pickle.dump(entities, open( "entities.p", "wb" ) )
 
 entities = pickle.load(open( "entities.p", "rb"))
-counter = Counter([entry[0] for entry in list(filter((lambda x: (x[1] == 'PERSON')), entities))]) #frequencies
-#characterFreq = sorted([(entry[0], counter[entry]) for entry in list(filter((lambda x: (x[1] == 'PERSON')), counter))], key=lambda x: x[1], reverse=True)
-#print(characterFreq)
+counter = Counter([entry[0] for entry in list(filter((lambda x: (x[1] == 'PERSON')), entities))]) 
+
 top = {}
 for entry in counter.most_common(25):
     top[entry[0]] = entry[1]
