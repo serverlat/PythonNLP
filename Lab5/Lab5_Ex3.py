@@ -12,6 +12,8 @@ from keras.layers import Dense, Embedding, GRU, Dropout, LSTM
 from sklearn.model_selection import train_test_split
 import collections
 
+# The comments are mostly meant for myself to understand the code :)
+
 MAX_WORDS = 1000
 
 def sentiment_analysis(sentence):
@@ -27,14 +29,13 @@ def load_tweets():
     tweets = pd.read_json("Lab5/realDonaldTrump.json")
     tweets["sentiment"] = np.array([sentiment_analysis(tweet)
                         for tweet in tweets["text"]])
-    print(len(tweets))
     return tweets
 
 def sequences():
     tweets = load_tweets().sort_values(by="timeStamp")
     tokenizer = Tokenizer(num_words=MAX_WORDS, split=" ")
     tokenizer.fit_on_texts(tweets["text"].values) # fills internal vocab with unique number for each word, lower value = more frequent {the: 1, cat:2 ...}
-    election_tweets = tweets[(tweets["timeStamp"] < "2020-12-03 00:00:00") & (tweets["timeStamp"] > "2020-10-03 00:00:00")]
+    election_tweets = tweets[(tweets["timeStamp"] < "2020-12-03 00:00:00") & (tweets["timeStamp"] > "2020-10-03 00:00:00")] 
     regular_tweets = tweets[(tweets["timeStamp"] < "2020-10-03 00:00:00")]
     election_tweets_temp = []
     election_tweets_dates = []
@@ -69,7 +70,7 @@ def embedding(tokenizer):
     return Embedding(len(word_index) + 1, # vocab size
                      100, # dimension of the embedding
                      weights=[embedding_matrix], # map input integers to embedding vectors, so if we input a sentence [121 213 321 11 22 44] it can be mapped word for word
-                     input_length=50, #trying 25
+                     input_length=50, 
                      mask_zero=True,
                      trainable=False)
 
@@ -100,7 +101,6 @@ def processing(model, X, Y):
 processing(model, tweets_text, tweets_labels)
 
 tweet_sents = Counter(np.argmax(model.predict(election_tweets[0]), axis=-1))
-print(tweet_sents.items())
 
 plot_vals_positive = [tweet_sents[2]]
 plot_vals_negative = [tweet_sents[0]]
@@ -120,6 +120,6 @@ for i in range(1, len(election_tweets_dates)):
 plt.plot(election_tweets_dates, plot_vals_positive, label = "positive") 
 plt.plot(election_tweets_dates, plot_vals_negative, label = "negative") 
 plt.plot(election_tweets_dates, plot_vals_neutral, label = "neutral")
-plt.xticks(election_tweets_dates, [f"{date.date().month}/{date.date().day}" for date in election_tweets_dates], rotation=90)
+plt.xticks(election_tweets_dates, [f"{date.date().day}/{date.date().month}" for date in election_tweets_dates], rotation=90)
 plt.legend()    
 plt.show()

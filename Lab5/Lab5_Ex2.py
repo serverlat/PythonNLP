@@ -14,7 +14,7 @@ annotationURL = "https://api.dbpedia-spotlight.org/en/annotate"
 annotation = spotlight.annotate(annotationURL, hm, confidence=0.7, support=30, filters=person)
 
 counter = Counter([entry["URI"].split("/")[-1] for entry in annotation]) 
-print(counter.keys()) # individual entities
+print(counter.keys()) # unique entities
 
 properties = ["dbo%3AbirthPlace", "dbo%3AbirthDate"]
 
