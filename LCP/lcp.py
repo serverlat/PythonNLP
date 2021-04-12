@@ -2,6 +2,7 @@ import pandas as pd
 import pickle
 import numpy as np
 import cmudict
+from models import InferSent
 from wonderlic_nlp import WonderlicNLP 
 from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
@@ -26,12 +27,6 @@ train_data = pd.read_csv("LCP/CompLex/train/lcp_single_train.tsv", sep="\t")
 def glove_embedding(word):
     return [emb for emb in embeddings_index[str(word).lower()]]
 
-def syllable_count(word):
-    if word in cmudict:
-        return max([len([syl for syl in entry if syl[-1].isdigit()]) for entry in cmudict[word]])
-    else:
-        return -1
-
 def extract_features(tokens):
     features = defaultdict(list)
     for token in tokens:
@@ -53,13 +48,13 @@ def extract_features(tokens):
 
 
 features_df = pd.DataFrame(extract_features(train_data["token"].values))
-#print(features_df)
-#train_text = train_data["token_en"]
 train_labels = train_data["complexity"]
 test_data = pd.read_csv("LCP/CompLex/test/lcp_single_test.tsv", sep="\t")
+
 #test_data["token_en"] = test_data["token"].apply(glove_embedding)
 #test_text =  test_data["token_en"]
 test_labels = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t")["complexity"]
+
 model = LinearRegression().fit(features_df, train_labels)
 print(model.score(features_df, train_labels))
 #labels_pred = model.predict(test_text)
