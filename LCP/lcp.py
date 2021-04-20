@@ -4,7 +4,6 @@ import numpy as np
 import cmudict
 import torch 
 import math
-import tqdm
 from datetime import datetime
 from models import InferSent
 from sklearn.preprocessing import StandardScaler
@@ -56,19 +55,12 @@ class LCP:
         f.close()
         print("GLOVE READY!", datetime.now().strftime("%H:%M:%S"))
 
-    #train_data = pd.read_csv("LCP/CompLex/train/lcp_single_train.tsv", sep="\t", index_col="id")
-    #initialize_glove()
-    #initialize_infersent(train_data["sentence"])
-
     def glove_embedding(self, word):
         return [emb for emb in self.embeddings_index[str(word).lower()]]
 
     def extract_features(self, data):
         features = defaultdict(list)
-        progress_count = 0
-        progress = tqdm(total=len(data.index))
-        for id in data.index:
-            progress.update(progress_count)
+        for id in tqdm(data.index, desc="PROCESSING DATA"):
             token = str(data.loc[id]["token"]).lower()
             sent = data.loc[id]["sentence"]
             mrc_features = self.wnlp.get_mrc_features(token)
@@ -88,8 +80,6 @@ class LCP:
             features["meaningfulness_p"].append(mrc_features["Meanp"])
             features["age_of_aquisition"].append(mrc_features["AOA"])
             features["wiki_fred"].append(int(token in self.wiki_top10))
-            progress_count += 1
-        print("EXTRACTION DONE!", datetime.now().strftime("%H:%M:%S"))
         return features
 
     # Actual model
@@ -120,29 +110,10 @@ def main():
     train_data = pd.read_csv("LCP/CompLex/train/lcp_single_train.tsv", sep="\t", index_col="id")
     train_labels = train_data["complexity"]
     lcp.fit(train_data, train_labels)
-    print(lcp.score(train_data, train_labels))
+    print("R^2:", lcp.score(train_data, train_labels))
     test_data = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t", index_col="id")
     test_labels = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t")["complexity"]
     lcp.predict(test_data)
     lcp.metrics(test_data, test_labels)
-
-    #features_df = pd.DataFrame(extract_features(train_data)) # by ID bc sents 
-    #scaler = StandardScaler()
-    #features_df = scaler.fit_transform(features_df)
-    #train_labels = train_data["complexity"]
-    #test_data = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t", index_col="id")
-    #test_sents = pd.DataFrame(extract_features(test_data))
-    #test_sents = scaler.transform(test_sents)
-    #test_labels = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t")["complexity"]
-    #print("TRAINING", datetime.now().strftime("%H:%M:%S"))
-    #model = RandomForestRegressor(n_estimators=16).fit(features_df, train_labels)
-    #model = SVR(kernel="linear").fit(features_df, train_labels)
-    #model = LinearRegression().fit(features_df, train_labels)
-    #print("SCORING R^2", datetime.now().strftime("%H:%M:%S"))
-    #print("R^2:", model.score(features_df, train_labels))
-    #print("PREDICTING", datetime.now().strftime("%H:%M:%S"))
-    #labels_pred = model.predict(test_sents)
-    #print("MEAN ABSOLUTE ERROR:", mean_absolute_error(test_labels, labels_pred))
-    #print("ROOT MEAN SQUARED ERROR:", math.sqrt(mean_squared_error(test_labels, labels_pred)) )
 
 main()
