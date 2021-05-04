@@ -8,7 +8,9 @@ import csv
 import nltk
 import re
 from datetime import datetime
+from models import InferSent
 from nltk.stem import WordNetLemmatizer
+from nltk import trigrams
 from wonderlic_nlp import WonderlicNLP 
 from collections import defaultdict
 from sklearn.ensemble import RandomForestRegressor
@@ -24,7 +26,24 @@ class LCP:
         self.wnlp = WonderlicNLP()
         self.embeddings_index = {}
         self.wiki_top10 = [word[0].split()[0] for word in pd.read_csv("LCP/wiki_top10.csv").values]
+        self.infersent_model_path = 'LCP/infersent%s.pkl' % 1
+        self.infersent_model_params = {'bsize': 64, 'word_emb_dim': 300, 'enc_lstm_dim': 2048,
+                                        'pool_type': 'max', 'dpout_model': 0.0, 'version': 1}
+        self.infersent = InferSent(self.infersent_model_params)
         self.model = RandomForestRegressor(n_estimators=100)
+
+    #InferSent setup 
+
+    def initialize_infersent(self, sentences):
+        print("INITIALIZING INFERSENT...", datetime.now().strftime("%H:%M:%S"))
+        self.infersent.load_state_dict(torch.load(self.infersent_model_path))
+        w2v_path = 'LCP/glove.42B.300d.txt'
+        self.infersent.set_w2v_path(w2v_path)
+        self.infersent.build_vocab(sentences, tokenize=True) 
+        print("INFERSENT READY!", datetime.now().strftime("%H:%M:%S"))
+
+    def infersent_embedding(self, sentence):
+        return self.infersent.encode(sentence, tokenize=True) 
 
     # GloVe setup
 
@@ -62,6 +81,10 @@ class LCP:
             mrc_features = self.wnlp.get_mrc_features(token)
             glove = self.glove_embedding(token)
 
+            infersent = self.infersent_embedding([sent])[0]
+            for i in range(1, 4097):
+                features[f"infersent{i}"].append(infersent[i-1])
+
             for i in range(1,301):
                 features[f"glove{i}"].append(glove[i-1])
                 
@@ -76,24 +99,13 @@ class LCP:
             features["age_of_aquisition"].append(mrc_features["AOA"])
             features["wiki_fred"].append(int(token in self.wiki_top10))
 
-            tokens = nltk.word_tokenize(re.sub(r"[^\w\s]", r" ", sent))
-            word_pos = self.find_word_pos(raw_token, tokens)
-
-            prev_word = tokens[word_pos-1] if word_pos!=0 and word_pos is not None else None
-            next_word = tokens[word_pos+1] if word_pos!=(len(tokens)-1) and word_pos is not None else None
-
-            prev_glove = self.glove_embedding(prev_word)
-            for i in range(1,301):
-                features[f"prev_glove{i}"].append(prev_glove[i-1])
-            next_glove = self.glove_embedding(next_word)
-            for i in range(1,301):
-                features[f"next_glove{i}"].append(next_glove[i-1])
-
         return features
 
+    # Actual model
     def fit(self, train_data, train_labels):
         print("TRAINING...", datetime.now().strftime("%H:%M:%S"))
         self.initialize_glove()
+        self.initialize_infersent(train_data["sentence"])
         features = self.extract_features(train_data)
         self.model.fit(pd.DataFrame(features), train_labels)
         print("TRAINING DONE!", datetime.now().strftime("%H:%M:%S"))
@@ -112,6 +124,7 @@ class LCP:
 
     def predict(self, test_data, development=False):
         print("LOOKING INTO THE ORB...", datetime.now().strftime("%H:%M:%S"))
+        self.infersent.update_vocab(test_data)
         tokens = test_data["token"]
         predictions = self.model.predict(pd.DataFrame(self.extract_features(test_data)))
         if not development:
@@ -131,12 +144,13 @@ class LCP:
         print("RMSE:", rmse)
     
     def save(self):
-        pickle.dump([self.model, self.embeddings_index], open(self.filename, "wb"))
+        pickle.dump([self.model, self.embeddings_index, self.infersent], open(self.filename, "wb"))
     
     def load(self):
        data = pickle.load(open(self.filename, "rb"))
        self.model = data[0]
        self.embeddings_index = data[1]
+       self.infersent = data[2]
 
     def feature_importances(self):
         return self.model.feature_importances_
@@ -151,13 +165,11 @@ def main():
     print("R^2:", lcp.score(train_data, train_labels))
     test_data = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t", index_col="id", error_bad_lines=True, quoting=csv.QUOTE_NONE)
     test_labels = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t", error_bad_lines=True, quoting=csv.QUOTE_NONE)["complexity"]
+    #print(lcp.predict(test_data[0:50]))
     lcp.metrics(test_data, test_labels)
     #lcp.save()
     trial_data = pd.read_csv("LCP/CompLex/trial/lcp_single_trial.tsv", sep="\t", index_col="id", error_bad_lines=True, quoting=csv.QUOTE_NONE)
-    #test_predict = [["ingenuous languid magnanimous nascent conflagration indefatigable", "indefatigable"]]
-    #test_predict = pd.DataFrame(test_predict, columns=["sentence", "token"])
 
-    print(lcp.predict(trial_data[0:5]))
 
     importance = lcp.feature_importances()
     glove_word = 0
