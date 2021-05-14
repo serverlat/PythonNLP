@@ -150,12 +150,10 @@ def demo():
     model = LCPR_G().load()
     train_data = pd.read_csv("LCP/CompLex/train/lcp_single_train.tsv", sep="\t", index_col="id", error_bad_lines=True, quoting=csv.QUOTE_NONE)
     train_labels = train_data["complexity"]
-    model.fit(train_data, train_labels)
-    model.save()
-    #print("R^2:", model.score(train_data, train_labels))
+    print("R^2:", model.score(train_data, train_labels))
     test_data = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t", index_col="id", error_bad_lines=True, quoting=csv.QUOTE_NONE)
     test_labels = pd.read_csv("LCP/CompLex/test-labels/lcp_single_test.tsv", sep="\t", error_bad_lines=True, quoting=csv.QUOTE_NONE)["complexity"]
-    #model.metrics(test_data, test_labels)
+    model.metrics(test_data, test_labels)
 
     # Random words test
     test_predict = [["ingenuous languid magnanimous nascent conflagration indefatigable", "indefatigable"]]
