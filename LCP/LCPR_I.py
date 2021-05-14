@@ -32,7 +32,7 @@ class LCPR_I:
         self.infersent = InferSent(self.infersent_model_params)
         self.model = RandomForestRegressor(n_estimators=100)
 
-    #InferSent setup:
+    #InferSent setup (boilerplate code from InferSent's repository):
     def initialize_infersent(self, sentences):
         print("INITIALIZING INFERSENT...", datetime.now().strftime("%H:%M:%S"))
         self.infersent.load_state_dict(torch.load(self.infersent_model_path))
