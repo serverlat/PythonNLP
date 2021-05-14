@@ -13,11 +13,6 @@ from sklearn.metrics import confusion_matrix
 
 # Exercise 3
 
-consumer_key = "RMJSIt2Qmj4qnwXf04eIkjvru"
-consumer_secret = "lUQh4rqpU4i1iU8n071niRBdrVLRBsh8hOtxuTUIVaQdEayHHW"
-access_token = "2300132793-MD4A3wKlFmWUegL5vewodoUSWBFIHMlbSVUKigc"
-access_token_secret = "UEMaOLNSUdeuEA5r2dcUuic30DgwwYdcLzuahgwPwMq4h"
-
 # Boilerplate code from GitLab
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
